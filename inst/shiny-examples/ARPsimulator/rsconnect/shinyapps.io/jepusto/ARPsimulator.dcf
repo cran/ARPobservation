@@ -1,0 +1,12 @@
+name: ARPsimulator
+title: ARPsimulator
+username:
+account: jepusto
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 356086
+bundleId: 1414853
+url: https://jepusto.shinyapps.io/ARPsimulator/
+when: 1528293982.58857
+asMultiple: FALSE
+asStatic: FALSE

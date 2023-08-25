@@ -12,35 +12,33 @@
 
 <meta name="author" content="James E. Pustejovsky" />
 
-<meta name="date" content="2021-04-30" />
+<meta name="date" content="2023-08-25" />
 
 <title>Direct observation recording: Algorithms used in ARPobservation</title>
 
-<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
-// v0.0.1
-// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
-
-document.addEventListener('DOMContentLoaded', function() {
-  const codeList = document.getElementsByClassName("sourceCode");
-  for (var i = 0; i < codeList.length; i++) {
-    var linkList = codeList[i].getElementsByTagName('a');
-    for (var j = 0; j < linkList.length; j++) {
-      if (linkList[j].innerHTML === "") {
-        linkList[j].setAttribute('aria-hidden', 'true');
-      }
-    }
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
   }
 });
 </script>
 
 <style type="text/css">
-  code{white-space: pre-wrap;}
-  span.smallcaps{font-variant: small-caps;}
-  span.underline{text-decoration: underline;}
-  div.column{display: inline-block; vertical-align: top; width: 50%;}
-  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-  ul.task-list{list-style: none;}
-    </style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
 
 
 
@@ -239,78 +237,203 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Direct observation recording: Algorithms used in <code>ARPobservation</code></h1>
+<h1 class="title toc-ignore">Direct observation recording: Algorithms
+used in <code>ARPobservation</code></h1>
 <h4 class="author">James E. Pustejovsky</h4>
-<h4 class="date">2021-04-30</h4>
+<h4 class="date">2023-08-25</h4>
 
 
 
-<p>This vignette describes the algorithms used in <code>ARPobservation</code> to simulate behavior streams and direct observation recording data based on an alternating renewal process. The ARP is a statistical model that can be used to describe the characteristics of simple behavior streams, in which a behavior of interest is either occurring or not occurring at a given point in time. We will refer to the length of individual episodes of behavior as <em>event durations</em> and the lengths of time between episodes of behavior as <em>interim times</em>. In the ARP framework, variability is introduced into the behavior stream by treating each individual event duration and each interim time as a random quantity, drawn from some probability distribution.</p>
-<p>The sequence of events comprising the behavior stream can be described as follows. Let <span class="math inline">\(L\)</span> denote the length of the observation session. Let <span class="math inline">\(A_1\)</span> denote the duration of the first behavioral event observed, <span class="math inline">\(A_2\)</span> denote the duration of the second event, and <span class="math inline">\(A_u\)</span> the duration of event <span class="math inline">\(u\)</span> for <span class="math inline">\(u = 3,4,5,...\)</span>. Let <span class="math inline">\(B_0\)</span> denote the length of time from the beginning of the observation session until the first behavioral event, with <span class="math inline">\(B_0 = 0\)</span> if event 1 is occurring at the beginning of the session. Let <span class="math inline">\(B_u\)</span> denote the <span class="math inline">\(u^{th}\)</span> interim time, meaning the length of time between the end of event <span class="math inline">\(u\)</span> and the beginning of event <span class="math inline">\(u + 1\)</span>, for <span class="math inline">\(u = 1,2,3,...\)</span>. The values <span class="math inline">\(B_0,A_1,B_1,A_2,B_2,A_3,B_3,...\)</span> provide a quantitative description of the behavior stream from an observation session. Note that these quantities are measured in time units, such as seconds.</p>
+<p>This vignette describes the algorithms used in
+<code>ARPobservation</code> to simulate behavior streams and direct
+observation recording data based on an alternating renewal process. The
+ARP is a statistical model that can be used to describe the
+characteristics of simple behavior streams, in which a behavior of
+interest is either occurring or not occurring at a given point in time.
+We will refer to the length of individual episodes of behavior as
+<em>event durations</em> and the lengths of time between episodes of
+behavior as <em>interim times</em>. In the ARP framework, variability is
+introduced into the behavior stream by treating each individual event
+duration and each interim time as a random quantity, drawn from some
+probability distribution.</p>
+<p>The sequence of events comprising the behavior stream can be
+described as follows. Let <span class="math inline">\(L\)</span> denote
+the length of the observation session. Let <span class="math inline">\(A_1\)</span> denote the duration of the first
+behavioral event observed, <span class="math inline">\(A_2\)</span>
+denote the duration of the second event, and <span class="math inline">\(A_u\)</span> the duration of event <span class="math inline">\(u\)</span> for <span class="math inline">\(u =
+3,4,5,...\)</span>. Let <span class="math inline">\(B_0\)</span> denote
+the length of time from the beginning of the observation session until
+the first behavioral event, with <span class="math inline">\(B_0 =
+0\)</span> if event 1 is occurring at the beginning of the session. Let
+<span class="math inline">\(B_u\)</span> denote the <span class="math inline">\(u^{th}\)</span> interim time, meaning the length
+of time between the end of event <span class="math inline">\(u\)</span>
+and the beginning of event <span class="math inline">\(u + 1\)</span>,
+for <span class="math inline">\(u = 1,2,3,...\)</span>. The values <span class="math inline">\(B_0,A_1,B_1,A_2,B_2,A_3,B_3,...\)</span> provide a
+quantitative description of the behavior stream from an observation
+session. Note that these quantities are measured in time units, such as
+seconds.</p>
 <div id="simulating-the-behavior-stream" class="section level1">
 <h1>Simulating the behavior stream</h1>
 <div id="generating-distributions" class="section level2">
 <h2>Generating distributions</h2>
-<p>The <code>ARPobservation</code> package generates behavior streams that follow an alternating renewal process with specified generating distributions. The package provides two approaches to generating the initial interim time and initial event duration, which we explain further below. Subsequent event durations <span class="math inline">\(A_2,A_3,A_4,...\)</span> are generated independently, following a specified probability distribution with mean <span class="math inline">\(\mu\)</span> and cumulative distribution function (cdf) <span class="math inline">\(F(t; \mu)\)</span>. Subsequent interim times <span class="math inline">\(B_1,B_2,B_3,...\)</span> are generated independently, following a specified probability distribution with mean <span class="math inline">\(\lambda\)</span> and cdf <span class="math inline">\(G(t; \lambda)\)</span>.</p>
-<p>The package currently includes functions for exponential distributions, gamma distributions, mixtures of two gamma distributions, Weibull distributions, uniform distributions, and constant values. Each distribution is implemented as an object of class <code>eq_dist</code>, which provides functions for generating random deviates from the specified distribution and the corresponding equilibrium distribution. For distributions involving more than a single parameter, all parameters except for the mean must be specified.</p>
+<p>The <code>ARPobservation</code> package generates behavior streams
+that follow an alternating renewal process with specified generating
+distributions. The package provides two approaches to generating the
+initial interim time and initial event duration, which we explain
+further below. Subsequent event durations <span class="math inline">\(A_2,A_3,A_4,...\)</span> are generated
+independently, following a specified probability distribution with mean
+<span class="math inline">\(\mu\)</span> and cumulative distribution
+function (cdf) <span class="math inline">\(F(t; \mu)\)</span>.
+Subsequent interim times <span class="math inline">\(B_1,B_2,B_3,...\)</span> are generated
+independently, following a specified probability distribution with mean
+<span class="math inline">\(\lambda\)</span> and cdf <span class="math inline">\(G(t; \lambda)\)</span>.</p>
+<p>The package currently includes functions for exponential
+distributions, gamma distributions, mixtures of two gamma distributions,
+Weibull distributions, uniform distributions, and constant values. Each
+distribution is implemented as an object of class <code>eq_dist</code>,
+which provides functions for generating random deviates from the
+specified distribution and the corresponding equilibrium distribution.
+For distributions involving more than a single parameter, all parameters
+except for the mean must be specified.</p>
 </div>
 <div id="initial-conditions" class="section level2">
 <h2>Initial conditions</h2>
-<p><code>ARPobservation</code> provides two approaches to generating the initial interim time and initial event duration. The first approach involves the following steps:</p>
+<p><code>ARPobservation</code> provides two approaches to generating the
+initial interim time and initial event duration. The first approach
+involves the following steps:</p>
 <ol style="list-style-type: decimal">
-<li>Generate a random number <span class="math inline">\(X\)</span> from a Bernoulli distribution with user-specified probability <span class="math inline">\(p_0\)</span>.</li>
-<li>If <span class="math inline">\(X = 0\)</span>, then generate <span class="math inline">\(B_0\)</span> from the same distribution as subsequent interim times, i.e., from <span class="math inline">\(G(t; \lambda)\)</span>. If <span class="math inline">\(X = 1\)</span>, then set <span class="math inline">\(B_0 = 0\)</span>.</li>
-<li>Generate <span class="math inline">\(A_1\)</span> from the same distribution as subsequent event durations, i.e., from <span class="math inline">\(F(t; \mu)\)</span>.</li>
+<li>Generate a random number <span class="math inline">\(X\)</span> from
+a Bernoulli distribution with user-specified probability <span class="math inline">\(p_0\)</span>.</li>
+<li>If <span class="math inline">\(X = 0\)</span>, then generate <span class="math inline">\(B_0\)</span> from the same distribution as
+subsequent interim times, i.e., from <span class="math inline">\(G(t;
+\lambda)\)</span>. If <span class="math inline">\(X = 1\)</span>, then
+set <span class="math inline">\(B_0 = 0\)</span>.</li>
+<li>Generate <span class="math inline">\(A_1\)</span> from the same
+distribution as subsequent event durations, i.e., from <span class="math inline">\(F(t; \mu)\)</span>.</li>
 </ol>
-<p>If <span class="math inline">\(p_0\)</span> is not specified by the user, the default value of <span class="math inline">\(p_0 = 0\)</span> is used, so that behavior streams always begin with an interim time. This approach produces behavior streams that are initially out of equilibrium.</p>
-<p>The other approach uses initial conditions chosen so that the resulting process is in equilibrium. This involves the following steps:</p>
+<p>If <span class="math inline">\(p_0\)</span> is not specified by the
+user, the default value of <span class="math inline">\(p_0 = 0\)</span>
+is used, so that behavior streams always begin with an interim time.
+This approach produces behavior streams that are initially out of
+equilibrium.</p>
+<p>The other approach uses initial conditions chosen so that the
+resulting process is in equilibrium. This involves the following
+steps:</p>
 <ol style="list-style-type: decimal">
-<li>Generate a random number <span class="math inline">\(X\)</span> from a Bernoulli distribution with probability <span class="math inline">\(\mu / (\mu + \lambda)\)</span>.</li>
+<li>Generate a random number <span class="math inline">\(X\)</span> from
+a Bernoulli distribution with probability <span class="math inline">\(\mu / (\mu + \lambda)\)</span>.</li>
 <li>If <span class="math inline">\(X = 0\)</span>, then generate <span class="math inline">\(B_0\)</span> from the distribution with cdf <span class="math display">\[
-\tilde{G}(t; \lambda) = \frac{1}{\lambda} \int_0^t \left[1 - G(x; \lambda)\right] dx. \]</span> If <span class="math inline">\(X = 1\)</span>, then set <span class="math inline">\(B_0 = 0\)</span>.</li>
-<li>If <span class="math inline">\(X = 0\)</span>, then generate <span class="math inline">\(A_1\)</span> from <span class="math inline">\(F(t; \mu)\)</span>. If <span class="math inline">\(X = 1\)</span>, then generate <span class="math inline">\(A_1\)</span> from the distribution with cdf <span class="math display">\[
-\tilde{F}(t; \mu) = \frac{1}{\mu} \int_0^t \left[1 - F(x; \mu) \right] dx. \]</span></li>
+\tilde{G}(t; \lambda) = \frac{1}{\lambda} \int_0^t \left[1 - G(x;
+\lambda)\right] dx. \]</span> If <span class="math inline">\(X =
+1\)</span>, then set <span class="math inline">\(B_0 = 0\)</span>.</li>
+<li>If <span class="math inline">\(X = 0\)</span>, then generate <span class="math inline">\(A_1\)</span> from <span class="math inline">\(F(t;
+\mu)\)</span>. If <span class="math inline">\(X = 1\)</span>, then
+generate <span class="math inline">\(A_1\)</span> from the distribution
+with cdf <span class="math display">\[
+\tilde{F}(t; \mu) = \frac{1}{\mu} \int_0^t \left[1 - F(x; \mu) \right]
+dx. \]</span></li>
 </ol>
 </div>
 </div>
 <div id="direct-observation-recording-procedures" class="section level1">
 <h1>Direct observation recording procedures</h1>
-<p>The package provides several algorithms that simulate commonly used direct observation recording procedures. Each algorithm takes as input a randomly generated behavior stream and produces as output a summary measurement (or measurements) from a direct observation procedure.</p>
+<p>The package provides several algorithms that simulate commonly used
+direct observation recording procedures. Each algorithm takes as input a
+randomly generated behavior stream and produces as output a summary
+measurement (or measurements) from a direct observation procedure.</p>
 <div id="event-counting" class="section level2">
 <h2>Event counting</h2>
-<p>Event counting produces a measurement <span class="math inline">\(Y^E\)</span> equal to the number of events that begin during the observation session. Let <span class="math inline">\(J\)</span> denote the number of last behavioral event that begins during the observation session, which can be calculated by finding the integer that satisfies the inequalities <span class="math display">\[
-\sum_{j=0}^{J-1} \left(A_j + B_j \right) \leq L &lt; \sum_{j=0}^{J} \left(A_j + B_j \right),
-\]</span> where we define <span class="math inline">\(A_0 = 0\)</span> for notational convenience. It follows that <span class="math inline">\(Y^E = J\)</span>.</p>
+<p>Event counting produces a measurement <span class="math inline">\(Y^E\)</span> equal to the number of events that
+begin during the observation session. Let <span class="math inline">\(J\)</span> denote the number of last behavioral
+event that begins during the observation session, which can be
+calculated by finding the integer that satisfies the inequalities <span class="math display">\[
+\sum_{j=0}^{J-1} \left(A_j + B_j \right) \leq L &lt; \sum_{j=0}^{J}
+\left(A_j + B_j \right),
+\]</span> where we define <span class="math inline">\(A_0 = 0\)</span>
+for notational convenience. It follows that <span class="math inline">\(Y^E = J\)</span>.</p>
 </div>
 <div id="continuous-recording" class="section level2">
 <h2>Continuous recording</h2>
-<p>Continuous recording produces a measurement <span class="math inline">\(Y^C\)</span> equal to the proportion of the observation session during which the behavior occurs. In order to calculate this quantity from the behavior stream, we must account for the possibility that the last event beginning during the observation session may have a duration that extends beyond when the session ends. The measurement based on continuous recording can be calculated as <span class="math display">\[
+<p>Continuous recording produces a measurement <span class="math inline">\(Y^C\)</span> equal to the proportion of the
+observation session during which the behavior occurs. In order to
+calculate this quantity from the behavior stream, we must account for
+the possibility that the last event beginning during the observation
+session may have a duration that extends beyond when the session ends.
+The measurement based on continuous recording can be calculated as <span class="math display">\[
 Y^C = \begin{cases}
-\frac{1}{L} \sum_{j=1}^J A_j &amp; \text{if}\quad \sum_{j=1}^{J} \left(B_{j-1} + A_j\right) \leq L \\
-1 - \frac{1}{L} \sum_{j=0}^{J-1} B_j &amp; \text{if}\quad \sum_{j=1}^{J} \left(B_{j-1} + A_j\right) &gt; L
+\frac{1}{L} \sum_{j=1}^J A_j &amp; \text{if}\quad \sum_{j=1}^{J}
+\left(B_{j-1} + A_j\right) \leq L \\
+1 - \frac{1}{L} \sum_{j=0}^{J-1} B_j &amp; \text{if}\quad \sum_{j=1}^{J}
+\left(B_{j-1} + A_j\right) &gt; L
 \end{cases}
 \]</span></p>
 </div>
 <div id="momentary-time-sampling" class="section level2">
 <h2>Momentary time sampling</h2>
-<p>In momentary time sampling, an observer divides the observation session into <span class="math inline">\(K\)</span> intervals of equal length and notes whether the behavior is present or absent at the very end of each interval. The summary measurement <span class="math inline">\(Y^M\)</span> then corresponds to the proportion of moments during which the behavior is observed. Let <span class="math inline">\(X_k = 1\)</span> if the behavior is occurring at the end of interval <span class="math inline">\(k\)</span> for <span class="math inline">\(k = 1,...,K\)</span>. The value of <span class="math inline">\(X_k\)</span> can be calculated from the behavior stream as follows. Let <span class="math inline">\(I(X)\)</span> denote the indicator function, equal to one if condition <span class="math inline">\(X\)</span> is true and zero otherwise. Let <span class="math inline">\(m_k\)</span> be the number of the last event that ends before the <span class="math inline">\(k^{th}\)</span> interval ends, defined formally as <span class="math display">\[
-m_k = \sum_{i=1}^J I\left[\sum_{j=1}^i \left(B_{j-1} + A_j\right) &lt; k L \right]
-\]</span> for <span class="math inline">\(k = 1,...,K\)</span>. If interim time <span class="math inline">\(B_{m_k}\)</span> concludes before the end of interval <span class="math inline">\(k\)</span> (or equivalently, if event <span class="math inline">\(A_{m_k+1}\)</span> begins before the end of interval <span class="math inline">\(k\)</span>), then <span class="math inline">\(X_k = 1\)</span>; formally, <span class="math display">\[
+<p>In momentary time sampling, an observer divides the observation
+session into <span class="math inline">\(K\)</span> intervals of equal
+length and notes whether the behavior is present or absent at the very
+end of each interval. The summary measurement <span class="math inline">\(Y^M\)</span> then corresponds to the proportion of
+moments during which the behavior is observed. Let <span class="math inline">\(X_k = 1\)</span> if the behavior is occurring at
+the end of interval <span class="math inline">\(k\)</span> for <span class="math inline">\(k = 1,...,K\)</span>. The value of <span class="math inline">\(X_k\)</span> can be calculated from the behavior
+stream as follows. Let <span class="math inline">\(I(X)\)</span> denote
+the indicator function, equal to one if condition <span class="math inline">\(X\)</span> is true and zero otherwise. Let <span class="math inline">\(m_k\)</span> be the number of the last event that
+ends before the <span class="math inline">\(k^{th}\)</span> interval
+ends, defined formally as <span class="math display">\[
+m_k = \sum_{i=1}^J I\left[\sum_{j=1}^i \left(B_{j-1} + A_j\right) &lt; k
+L \right]
+\]</span> for <span class="math inline">\(k = 1,...,K\)</span>. If
+interim time <span class="math inline">\(B_{m_k}\)</span> concludes
+before the end of interval <span class="math inline">\(k\)</span> (or
+equivalently, if event <span class="math inline">\(A_{m_k+1}\)</span>
+begins before the end of interval <span class="math inline">\(k\)</span>), then <span class="math inline">\(X_k
+= 1\)</span>; formally, <span class="math display">\[
 X_k = I\left[\sum_{j=0}^{m_k} \left(A_j + B_j\right) &lt; k L \right]
-\]</span> for <span class="math inline">\(k = 1,...,K\)</span>. The summary measurement is then calculated as <span class="math inline">\(\displaystyle{Y^M = \sum_{k=1}^K X_k / K}\)</span>.</p>
+\]</span> for <span class="math inline">\(k = 1,...,K\)</span>. The
+summary measurement is then calculated as <span class="math inline">\(\displaystyle{Y^M = \sum_{k=1}^K X_k /
+K}\)</span>.</p>
 </div>
 <div id="partial-interval-recording" class="section level2">
 <h2>Partial interval recording</h2>
-<p>Like momentary time sampling, partial interval recording is also based on a set of <span class="math inline">\(K\)</span> intervals of equal length, but a different rule is used to score each interval. In partial interval recording, the observer counts a behavior as present if it occurs at any point during the first <span class="math inline">\(c\)</span> time units of the interval, where <span class="math inline">\(c \leq L / K\)</span>; the remaining <span class="math inline">\(L / K - c\)</span> time units are used to record notes or rest. Let <span class="math inline">\(U_k = 1\)</span> if the behavior occurs at any point during the <span class="math inline">\(k^{th}\)</span> interval, <span class="math inline">\(U_k = 0\)</span> otherwise. The <span class="math inline">\(k^{th}\)</span> interval will be equal to one if and only if interim time <span class="math inline">\(m_{k-1}\)</span> ends during the active part of the interval. Noting that interim time <span class="math inline">\(m_{k-1}\)</span> ends at time <span class="math inline">\(\sum_{j=0}^{m_{k-1}} \left(A_j + B_j\right)\)</span> and that the active part of the <span class="math inline">\(k^{th}\)</span> interval ends at time <span class="math inline">\((k-1)L + c\)</span>, it can be seen that <span class="math display">\[
-U_k = I \left[\sum_{j=0}^{m_{k-1}} \left(A_j + B_j\right) &lt; (k-1)L + c \right],
-\]</span> for <span class="math inline">\(k=1,...,K\)</span>. The summary measurement <span class="math inline">\(Y^P\)</span> is then calculated as the proportion of intervals during which the behavior is observed at any point: <span class="math inline">\(\displaystyle{Y^P = \sum_{k=1}^K U_k / K}\)</span>.</p>
+<p>Like momentary time sampling, partial interval recording is also
+based on a set of <span class="math inline">\(K\)</span> intervals of
+equal length, but a different rule is used to score each interval. In
+partial interval recording, the observer counts a behavior as present if
+it occurs at any point during the first <span class="math inline">\(c\)</span> time units of the interval, where <span class="math inline">\(c \leq L / K\)</span>; the remaining <span class="math inline">\(L / K - c\)</span> time units are used to record
+notes or rest. Let <span class="math inline">\(U_k = 1\)</span> if the
+behavior occurs at any point during the <span class="math inline">\(k^{th}\)</span> interval, <span class="math inline">\(U_k = 0\)</span> otherwise. The <span class="math inline">\(k^{th}\)</span> interval will be equal to one if
+and only if interim time <span class="math inline">\(m_{k-1}\)</span>
+ends during the active part of the interval. Noting that interim time
+<span class="math inline">\(m_{k-1}\)</span> ends at time <span class="math inline">\(\sum_{j=0}^{m_{k-1}} \left(A_j +
+B_j\right)\)</span> and that the active part of the <span class="math inline">\(k^{th}\)</span> interval ends at time <span class="math inline">\((k-1)L + c\)</span>, it can be seen that <span class="math display">\[
+U_k = I \left[\sum_{j=0}^{m_{k-1}} \left(A_j + B_j\right) &lt; (k-1)L +
+c \right],
+\]</span> for <span class="math inline">\(k=1,...,K\)</span>. The
+summary measurement <span class="math inline">\(Y^P\)</span> is then
+calculated as the proportion of intervals during which the behavior is
+observed at any point: <span class="math inline">\(\displaystyle{Y^P =
+\sum_{k=1}^K U_k / K}\)</span>.</p>
 </div>
 <div id="whole-interval-recording" class="section level2">
 <h2>Whole interval recording</h2>
-<p>Whole interval recording is similar to partial interval recording but uses yet a different rule to score each interval. Specifically, the observer counts a behavior as present only if it occurs for all <span class="math inline">\(c\)</span> time units at the beginning of the interval. Let <span class="math inline">\(W_k = 1\)</span> if the behavior occurs for the duration, with <span class="math inline">\(W_k = 0\)</span> otherwise. Let <span class="math inline">\(n_k\)</span> be the number of the last event that begins before the <span class="math inline">\(k^{th}\)</span> interval begins, defined formally as <span class="math display">\[
-n_k = \sum_{i=1}^J I\left[\sum_{j=0}^i \left(A_j + B_j\right) &lt; (k - 1) L \right]
-\]</span> for <span class="math inline">\(k = 1,...,K\)</span>. It follows that <span class="math inline">\(W_k\)</span> will be equal to one if and only if event <span class="math inline">\(n_k\)</span> ends after the active part of interval <span class="math inline">\(k\)</span>: <span class="math display">\[
-W_k = I \left[\sum_{j=1}^{n_k} \left(B_{j-1} + A_j\right) \geq (k - 1) L + c \right], \]</span> for <span class="math inline">\(k=1,...,K\)</span>. The summary measurement <span class="math inline">\(Y^W\)</span> is then calculated as the proportion of intervals during which the behavior is observed at any point: <span class="math inline">\(\displaystyle{Y^W = \sum_{k=1}^K W_k / K}\)</span>.</p>
+<p>Whole interval recording is similar to partial interval recording but
+uses yet a different rule to score each interval. Specifically, the
+observer counts a behavior as present only if it occurs for all <span class="math inline">\(c\)</span> time units at the beginning of the
+interval. Let <span class="math inline">\(W_k = 1\)</span> if the
+behavior occurs for the duration, with <span class="math inline">\(W_k =
+0\)</span> otherwise. Let <span class="math inline">\(n_k\)</span> be
+the number of the last event that begins before the <span class="math inline">\(k^{th}\)</span> interval begins, defined formally
+as <span class="math display">\[
+n_k = \sum_{i=1}^J I\left[\sum_{j=0}^i \left(A_j + B_j\right) &lt; (k -
+1) L \right]
+\]</span> for <span class="math inline">\(k = 1,...,K\)</span>. It
+follows that <span class="math inline">\(W_k\)</span> will be equal to
+one if and only if event <span class="math inline">\(n_k\)</span> ends
+after the active part of interval <span class="math inline">\(k\)</span>: <span class="math display">\[
+W_k = I \left[\sum_{j=1}^{n_k} \left(B_{j-1} + A_j\right) \geq (k - 1) L
++ c \right], \]</span> for <span class="math inline">\(k=1,...,K\)</span>. The summary measurement <span class="math inline">\(Y^W\)</span> is then calculated as the proportion
+of intervals during which the behavior is observed at any point: <span class="math inline">\(\displaystyle{Y^W = \sum_{k=1}^K W_k /
+K}\)</span>.</p>
 </div>
 </div>
 
